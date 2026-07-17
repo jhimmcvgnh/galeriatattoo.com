@@ -1,6 +1,113 @@
 /* booking-modal.js */
 
 (function() {
+
+    // ─── BLOQUEIO TOTAL DE NAVEGAÇÃO PARA PÁGINAS DO CARROSSEL ─────────────────
+    // Intercepta history.pushState para capturar navegações do Swup/Three.js
+    const _origPushState = history.pushState.bind(history);
+    history.pushState = function(state, title, url) {
+        if (url && String(url).match(/\/photo\/.+/)) {
+            // Bloqueia a navegação; se for sophia abre o modal
+            if (String(url).includes('sophia') && typeof openModal === 'function') {
+                openModal();
+            }
+            return; // cancela
+        }
+        return _origPushState(state, title, url);
+    };
+
+    // Intercepta replaceState também
+    const _origReplaceState = history.replaceState.bind(history);
+    history.replaceState = function(state, title, url) {
+        if (url && String(url).match(/\/photo\/.+/)) {
+            return; // cancela
+        }
+        return _origReplaceState(state, title, url);
+    };
+
+    // Intercepta window.location.assign
+    const _origAssign = window.location.assign.bind(window.location);
+    try {
+        Object.defineProperty(window.location, 'assign', {
+            value: function(url) {
+                if (url && String(url).match(/\/photo\/.+/)) return;
+                _origAssign(url);
+            },
+            writable: true, configurable: true
+        });
+    } catch(e) { /* seguro ignorar se browser não permitir */ }
+
+    // Intercepta window.location.href (setter)
+    try {
+        const origDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
+        if (origDescriptor && origDescriptor.set) {
+            Object.defineProperty(window.location, 'href', {
+                get: origDescriptor.get,
+                set: function(url) {
+                    if (url && String(url).match(/\/photo\/.+/)) return;
+                    origDescriptor.set.call(window.location, url);
+                },
+                configurable: true
+            });
+        }
+    } catch(e) { /* seguro ignorar */ }
+
+    // Intercepta o Swup via monkey-patch no window
+    let _swup = window.swup;
+    const patchSwup = (instance) => {
+        if (!instance || instance.__patched) return;
+        instance.__patched = true;
+
+        // Patch navigate
+        if (typeof instance.navigate === 'function') {
+            const orig = instance.navigate;
+            instance.navigate = function(url, ...args) {
+                if (url && String(url).match(/\/photo\/.+/)) {
+                    if (String(url).includes('sophia') && typeof openModal === 'function') openModal();
+                    return Promise.resolve();
+                }
+                return orig.apply(this, [url, ...args]);
+            };
+        }
+
+        // Patch hooks
+        if (instance.hooks && typeof instance.hooks.before === 'function') {
+            try {
+                instance.hooks.before('visit:start', (visit) => {
+                    const url = (visit.to && visit.to.url) || '';
+                    if (url.match(/\/photo\/.+/)) {
+                        visit.abort && visit.abort();
+                        if (url.includes('sophia') && typeof openModal === 'function') openModal();
+                    }
+                });
+            } catch(e) {}
+        }
+    };
+
+    if (_swup) {
+        patchSwup(_swup);
+    } else {
+        Object.defineProperty(window, 'swup', {
+            get() { return _swup; },
+            set(val) { _swup = val; patchSwup(val); },
+            configurable: true
+        });
+    }
+
+    // Bloqueia cliques em links <a> com href /photo/
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link) {
+            const href = link.getAttribute('href') || '';
+            if (href.match(/\/photo\/.+/)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (href.includes('sophia') && typeof openModal === 'function') openModal();
+            }
+        }
+    }, true);
+    // ───────────────────────────────────────────────────────────────────────────
+
     // 1. Injetar a estrutura HTML do modal no corpo da página
     const modalHTML = `
     <div class="booking-overlay" id="bookingOverlay">
@@ -798,22 +905,21 @@
         }
     });
 
-    // Interceptar cliques nos itens do carrosel para evitar redirecionamento e erros 404
+    // Interceptar cliques em links <a> físicos para evitar comportamento padrão
     function setupCarouselInterceptors() {
         document.addEventListener('click', (e) => {
-            // Verifica se o clique ocorreu dentro de um .visuals-item
-            const visualsItem = e.target.closest('.visuals-item');
-            if (visualsItem) {
-                // Impede o redirecionamento
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Se for a segunda imagem (Sophia), abre o agendamento
-                if (visualsItem.getAttribute('data-slug') === 'sophia') {
-                    openModal();
+            const link = e.target.closest('a');
+            if (link) {
+                const href = link.getAttribute('href') || '';
+                if (href.includes('/photo/')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (href.includes('sophia')) {
+                        openModal();
+                    }
                 }
             }
-        }, true); // useCapture = true para interceptar antes de outros scripts
+        }, true);
     }
 
     setupCarouselInterceptors();
