@@ -35,9 +35,9 @@
 
 /* Modal Box Container (Vertical Phone/Card style) */
 .booking-phone {
-    width: 360px;
-    height: 640px;
-    max-height: 90vh;
+    width: 330px;
+    height: 550px;
+    max-height: 85vh;
     background: var(--booking-card-bg);
     border: 1px solid rgba(231, 243, 226, 0.15);
     display: flex;
@@ -77,7 +77,7 @@
 /* Inner content viewport */
 .booking-content {
     flex: 1;
-    padding: 32px 24px 16px;
+    padding: 24px 20px 12px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(231, 243, 226, 0.2) transparent;
@@ -97,11 +97,11 @@
 
 /* Phase styling titles */
 .phase-title {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     color: var(--booking-text);
 }
 
@@ -124,7 +124,7 @@
 
 .body-part-card {
     border: 1px solid rgba(231, 243, 226, 0.2);
-    padding: 12px;
+    padding: 8px;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -470,7 +470,7 @@ input:checked + .slider:before {
 .booking-buttons {
     display: flex;
     gap: 12px;
-    padding: 16px 24px 24px;
+    padding: 12px 20px 16px;
     border-top: 1px solid rgba(231, 243, 226, 0.1);
     background: #141414;
     flex-shrink: 0;
@@ -597,25 +597,25 @@ input:checked + .slider:before {
 /* Mobile responsive constraints override */
 @media (max-width: 768px) {
     .booking-phone {
-        width: 90%;
-        max-width: 360px;
-        height: 85vh;
-        max-height: 640px;
+        width: 88%;
+        max-width: 310px;
+        height: 80vh;
+        max-height: 520px;
         border-radius: 12px;
         border: 1px solid rgba(231, 243, 226, 0.15);
     }
     .booking-content {
-        padding: 32px 18px 16px;
+        padding: 24px 16px 12px;
     }
     .booking-close {
-        top: 16px;
-        right: 16px;
+        top: 12px;
+        right: 12px;
         width: 24px;
         height: 24px;
         font-size: 24px;
     }
     .booking-buttons {
-        padding: 16px 18px 18px;
+        padding: 12px 16px 16px;
     }
     .chat-widget-container {
         bottom: 75px;

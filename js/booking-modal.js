@@ -798,4 +798,24 @@
         }
     });
 
+    // Interceptar cliques nos itens do carrosel para evitar redirecionamento e erros 404
+    function setupCarouselInterceptors() {
+        document.addEventListener('click', (e) => {
+            // Verifica se o clique ocorreu dentro de um .visuals-item
+            const visualsItem = e.target.closest('.visuals-item');
+            if (visualsItem) {
+                // Impede o redirecionamento
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Se for a segunda imagem (Sophia), abre o agendamento
+                if (visualsItem.getAttribute('data-slug') === 'sophia') {
+                    openModal();
+                }
+            }
+        }, true); // useCapture = true para interceptar antes de outros scripts
+    }
+
+    setupCarouselInterceptors();
+
 })();
